@@ -12,7 +12,7 @@ export const App = () => {
   const [testMode, setTestMode] = useState<"simple" | "advanced">("simple");
 
   return (
-    <div className="flex h-svh w-svw items-center justify-center bg-amber-50">
+    <div className="flex h-svh w-svw items-center justify-center bg-gray-50">
       {/* Test mode selector */}
       <div className="absolute top-6 right-6 z-50 w-48">
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm">

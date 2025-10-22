@@ -17,14 +17,43 @@ const modelCache = new Map<string, Object3D>();
 // Global cache toggle
 let cacheEnabled = true;
 
+// Cache change listeners
+const cacheChangeListeners = new Set<() => void>();
+
 export const setCacheEnabled = (enabled: boolean) => {
   cacheEnabled = enabled;
   console.log(`🗂️ Cache ${enabled ? "enabled" : "disabled"}`);
+  notifyCacheChange();
 };
 
 export const clearCache = () => {
   modelCache.clear();
   console.log("🗑️ Cache cleared");
+  notifyCacheChange();
+};
+
+export const addCacheChangeListener = (listener: () => void) => {
+  cacheChangeListeners.add(listener);
+  return () => cacheChangeListeners.delete(listener);
+};
+
+const notifyCacheChange = () => {
+  cacheChangeListeners.forEach((listener) => listener());
+};
+
+export const getCacheInfo = () => {
+  const cacheEntries = Array.from(modelCache.entries()).map(([url, scene]) => ({
+    url,
+    hasScene: !!scene,
+    sceneChildren: scene ? scene.children.length : 0,
+    sceneName: scene ? scene.name || "Unnamed" : "N/A",
+  }));
+
+  return {
+    size: modelCache.size,
+    entries: cacheEntries,
+    isEnabled: cacheEnabled,
+  };
 };
 
 interface UseGzipModelReturn {
@@ -83,6 +112,7 @@ export const useGzipModel = (url: string): UseGzipModelReturn => {
             // Only cache if caching is enabled
             if (cacheEnabled) {
               modelCache.set(url, clonedScene);
+              notifyCacheChange();
             }
 
             setScene(clonedScene);

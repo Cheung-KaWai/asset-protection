@@ -1,9 +1,33 @@
-import { Suspense, useState, createContext, useContext } from "react";
+import {
+  Suspense,
+  useState,
+  createContext,
+  useContext,
+  useEffect,
+} from "react";
 import {
   useGzipModel,
   setCacheEnabled as setGlobalCacheEnabled,
   clearCache,
+  getCacheInfo,
+  addCacheChangeListener,
 } from "../hooks/useGzipModel";
+
+// Custom hook to make cache info reactive
+const useCacheInfo = () => {
+  const [cacheInfo, setCacheInfo] = useState(getCacheInfo());
+
+  useEffect(() => {
+    const unsubscribe = addCacheChangeListener(() => {
+      setCacheInfo(getCacheInfo());
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  return cacheInfo;
+};
 
 // Create a context for sharing cache test state
 const CacheTestContext = createContext<{
@@ -76,6 +100,7 @@ export const CacheTestControls = () => {
     cacheEnabled,
     setCacheEnabled,
   } = useContext(CacheTestContext);
+  const cacheInfo = useCacheInfo();
 
   const addInstance = () => {
     const newInstances = [...instances, nextId.toString()];
@@ -194,6 +219,45 @@ export const CacheTestControls = () => {
               <span className="font-medium text-gray-900">
                 {instances.length}
               </span>
+            </div>
+          </div>
+
+          {/* Cache Visualization */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-700">Cache Contents</span>
+              <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                {cacheInfo.size} items
+              </span>
+            </div>
+
+            <div className="rounded bg-gray-50 p-3">
+              {cacheInfo.size === 0 ? (
+                <div className="text-center text-xs text-gray-500">
+                  Cache is empty
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {cacheInfo.entries.map((entry, index) => (
+                    <div
+                      key={index}
+                      className="rounded border border-gray-200 bg-white p-2"
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="mr-2 flex-1 truncate font-medium text-gray-900">
+                          {entry.url.split("/").pop()}
+                        </span>
+                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">
+                          {entry.sceneChildren} objects
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-gray-500">
+                        Scene: {entry.sceneName}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
