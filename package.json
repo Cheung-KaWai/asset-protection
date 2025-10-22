@@ -15,6 +15,7 @@
     "@tailwindcss/vite": "^4.1.15",
     "@types/three": "^0.180.0",
     "pako": "^2.1.0",
+    "prettier-plugin-tailwindcss": "^0.7.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tailwindcss": "^4.1.15",
