@@ -13,6 +13,8 @@ import {
   getCacheInfo,
   addCacheChangeListener,
 } from "../hooks/useGzipModel";
+import { AVAILABLE_MODELS } from "../config/models";
+import type { ModelConfig } from "../config/models";
 
 // Custom hook to make cache info reactive
 const useCacheInfo = () => {
@@ -36,17 +38,20 @@ const ChairVisibilityContext = createContext<{
   setIsVisible: (visible: boolean) => void;
   cacheEnabled: boolean;
   setCacheEnabled: (enabled: boolean) => void;
+  selectedModel: ModelConfig;
+  setSelectedModel: (model: ModelConfig) => void;
 }>({
   isVisible: true,
   setIsVisible: () => {},
   cacheEnabled: true,
   setCacheEnabled: () => {},
+  selectedModel: AVAILABLE_MODELS[0],
+  setSelectedModel: () => {},
 });
 
 const ChairModel = () => {
-  const { scene } = useGzipModel(
-    "/blender-compressed/chair-transformed.glb.gz",
-  );
+  const { selectedModel } = useContext(ChairVisibilityContext);
+  const { scene } = useGzipModel(selectedModel.url);
 
   return (
     <>
@@ -67,9 +72,14 @@ export const Chair = () => {
 };
 
 export const ChairControls = () => {
-  const { isVisible, setIsVisible, cacheEnabled, setCacheEnabled } = useContext(
-    ChairVisibilityContext,
-  );
+  const {
+    isVisible,
+    setIsVisible,
+    cacheEnabled,
+    setCacheEnabled,
+    selectedModel,
+    setSelectedModel,
+  } = useContext(ChairVisibilityContext);
   const cacheInfo = useCacheInfo();
 
   const toggleCache = () => {
@@ -119,6 +129,36 @@ export const ChairControls = () => {
             >
               {isVisible ? "Hide Chair" : "Show Chair"}
             </button>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200"></div>
+
+          {/* Model Selection */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-700">Model</span>
+              <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                {selectedModel.name}
+              </span>
+            </div>
+
+            <select
+              value={selectedModel.id}
+              onChange={(e) => {
+                const model = AVAILABLE_MODELS.find(
+                  (m) => m.id === e.target.value,
+                );
+                if (model) setSelectedModel(model);
+              }}
+              className="w-full rounded border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-gray-400 focus:outline-none"
+            >
+              {AVAILABLE_MODELS.map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Divider */}
@@ -201,16 +241,10 @@ export const ChairControls = () => {
                       key={index}
                       className="rounded border border-gray-200 bg-white p-2"
                     >
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="mr-2 flex-1 truncate font-medium text-gray-900">
-                          {entry.url.split("/").pop()}
-                        </span>
-                        <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">
-                          {entry.sceneChildren} objects
-                        </span>
-                      </div>
-                      <div className="mt-1 text-xs text-gray-500">
-                        Scene: {entry.sceneName}
+                      <div className="text-xs">
+                        <div className="break-all text-gray-600">
+                          {entry.url}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -227,6 +261,7 @@ export const ChairControls = () => {
 export const ChairProvider = ({ children }: { children: React.ReactNode }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [cacheEnabled, setCacheEnabled] = useState(true);
+  const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0]);
 
   return (
     <ChairVisibilityContext.Provider
@@ -235,6 +270,8 @@ export const ChairProvider = ({ children }: { children: React.ReactNode }) => {
         setIsVisible,
         cacheEnabled,
         setCacheEnabled,
+        selectedModel,
+        setSelectedModel,
       }}
     >
       {children}

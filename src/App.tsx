@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Environment } from "@react-three/drei";
 import { Chair, ChairControls, ChairProvider } from "./components/Chair";
 import {
   CacheTest,
@@ -55,6 +55,7 @@ export const App = () => {
           <ChairControls />
           <Canvas>
             <Chair />
+            <Environment preset="city" />
             <OrbitControls />
           </Canvas>
         </ChairProvider>
@@ -63,6 +64,7 @@ export const App = () => {
           <CacheTestControls />
           <Canvas>
             <CacheTest />
+            <Environment preset="city" />
             <OrbitControls />
           </Canvas>
         </CacheTestProvider>
